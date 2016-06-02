@@ -3,6 +3,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Scanner;
 import java.util.logging.Logger;
 
@@ -77,6 +78,11 @@ class Player {
 		 * La clé correspond à la position du noeud (son index)
 		 */
 		Map<Integer,Noeud> mapNoeud = new HashMap<>();
+		
+		/**
+		 * Indique si une embuscade a été positionné
+		 */
+		boolean embuscadePositionne = false;
 		
 		/**
 		 * Constructeur
@@ -215,10 +221,46 @@ class Player {
 			}
 			else
 			{
-				logger.info(String.format("Suppression d'un des liens de skynet ayant le plus de dépendances. "
-						+ "Position skynet : %d", skynetPosition));
-				supprimerLien(skynet.getPosition(),getLienAvecMaxDependance(skynet).getPosition());
+				if (!embuscadePositionne)
+				{
+					// Suppression du lien ayant le moins de dépendances pour la passerelle la plus accessible
+					supprimerLien(getPasserellePlusAccessible().getPosition(),
+							getLienAvecMinDependance(getPasserellePlusAccessible()).getPosition());
+					embuscadePositionne = true;
+				}
+				else
+				{
+					logger.info(String.format("Suppression d'un des liens de skynet ayant le plus de dépendances. "
+							+ "Position skynet : %d", skynetPosition));
+					supprimerLien(skynet.getPosition(),getLienAvecMaxDependance(skynet).getPosition());
+				}
 			}
+		}
+		
+		/**
+		 * Permet de retourner le noeud qui est une passerelle ayant le plus de lien
+		 * @return la passerelle ayant le plus de lien
+		 */
+		public Noeud getPasserellePlusAccessible()
+		{
+			Noeud passerelle = null;
+			
+			//Récupération de tous les noeuds du réseau
+			for (Entry<Integer,Noeud> entry : mapNoeud.entrySet())
+			{
+				Noeud noeud = entry.getValue();
+				
+				if (noeud.isPasserelle())
+				{
+					if (passerelle == null || 
+							noeud.getLiens().size() > passerelle.getLiens().size())
+					{
+						passerelle = noeud;
+					}
+				}
+			}
+			
+			return passerelle;
 		}
 		
 		/**

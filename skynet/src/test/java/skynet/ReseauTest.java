@@ -136,7 +136,7 @@ public class ReseauTest {
 	 * de skynet
 	 */
 	@Test
-	public void supprimerLienOptimiseSiPasserelle()
+	public void supprimerLienOptimiseSiPasserelleTest()
 	{
 		Reseau reseau = creerReseauComplexiteMoyenne();
 		
@@ -160,21 +160,51 @@ public class ReseauTest {
 	 * Permet de tester qu'on supprime de préférence le lien qui amène à plus de lien
 	 */
 	@Test
-	public void supprimerLienOptimiseSiPasDePasserelle()
+	public void supprimerLienOptimiseSiPasDePasserelleTest()
 	{
 		Reseau reseau = creerReseauComplexiteMoyenne();
 		
+		//Le noeud zero est la passerelle
+		Noeud noeudZero = reseau.getNoeud(0);
+		noeudZero.setPasserelle(true);
+		
+		Noeud noeudDeux = reseau.getNoeud(2);
 		Noeud noeudTrois = reseau.getNoeud(3);
 		Noeud noeudQuatre = reseau.getNoeud(4);
+		
+		//Le lien 0 a un lien avec le lien 2
+		Assert.assertTrue(noeudZero.getLiens().contains(noeudDeux));
+		
+		//Skynet est sur le noeud 3
+		//L'embuscade est mise en oeuvre une seule et unique fois
+		reseau.supprimerLienOptimise(3);
+		
+		//Le lien 0 n'a plus de lien avec le lien 2
+		Assert.assertFalse(noeudZero.getLiens().contains(noeudDeux));
 		
 		//Le lien 3 a un lien avec le lien 4
 		Assert.assertTrue(noeudTrois.getLiens().contains(noeudQuatre));
 		
-		//Skynet est sur le noeud 3
+		//Suppression du lien de skynet amenant le plus de liens
 		reseau.supprimerLienOptimise(3);
 		
-		//Le lien 3 n'a plus de lien avec le lien 4
+		//Le lien 0 n'a plus de lien avec le lien 2
 		Assert.assertFalse(noeudTrois.getLiens().contains(noeudQuatre));
+	}
+	
+	/**
+	 * Permet de tester la récupération de la passerelle la plus accesible
+	 */
+	@Test
+	public void getPasserellePlusAccessibleTest()
+	{
+		Reseau reseau = creerReseauComplexiteMoyenne();
+		
+		//Les noeuds 2 et 4 sont des passerelles
+		reseau.getNoeud(2).setPasserelle(true);
+		reseau.getNoeud(4).setPasserelle(true);
+		
+		Assert.assertEquals(4,reseau.getPasserellePlusAccessible().getPosition());
 	}
 	
 	/**
