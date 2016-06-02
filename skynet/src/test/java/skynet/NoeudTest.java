@@ -33,4 +33,39 @@ public class NoeudTest {
 		
 		Assert.assertTrue(noeudSource.getLiens().contains(noeudCible));
 	}
+	
+	/**
+	 * Permet de tester la récupération d'un lien qui est une passerelle
+	 * 1   2 (Passerelle)
+	 * 	\ /
+	 * 	 O
+	 * 	 |
+	 *   3 
+	 */
+	@Test
+	public void getLienPasserelleTest()
+	{
+		Noeud noeudSource = new Noeud(0);
+		Noeud noeudUn = new Noeud(1);
+		Noeud noeudDeux = new Noeud(2);
+		
+		//Le noeud deux est une passerelle
+		noeudDeux.setPasserelle(true);
+		
+		Noeud noeudTrois = new Noeud(3);
+		
+		noeudSource.ajouterLien(noeudUn);
+		noeudSource.ajouterLien(noeudDeux);
+		noeudSource.ajouterLien(noeudTrois);
+		
+		Assert.assertTrue(noeudSource.getLienPasserelle().equals(noeudDeux));
+		
+		//Le noeud deux n'est plus une passerelle
+		noeudDeux.setPasserelle(false);
+		
+		Assert.assertNull(noeudSource.getLienPasserelle());
+		
+	}
+	
+	
 }
