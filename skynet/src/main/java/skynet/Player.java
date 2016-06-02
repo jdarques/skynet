@@ -8,7 +8,9 @@ import java.util.logging.Logger;
 
 /**
  * Classe Player permettant d'exécuter les tests d'acceptance.
- * Cette classe peut être directement copiée dans codingame avec de valider les tests
+ * Cette classe peut être copiée dans codingame afin de valider les tests d'acception après avoir supprimé la première ligne de la classe
+ * ("package skynet")
+ * 
  **/
 public class Player {
 
