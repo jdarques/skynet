@@ -238,8 +238,8 @@ class Player {
 		}
 		
 		/**
-		 * Permet de retourner le noeud qui est une passerelle ayant le plus de lien
-		 * @return la passerelle ayant le plus de lien
+		 * Permet de retrouver le noeud qui est une passerelle ayant le plus de lien
+		 * @return la passerelle ayant le plus de liens
 		 */
 		public Noeud getPasserellePlusAccessible()
 		{
