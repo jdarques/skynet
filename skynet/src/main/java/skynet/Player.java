@@ -8,16 +8,14 @@ import java.util.logging.Logger;
 
 /**
  * Classe Player permettant d'exécuter les tests d'acceptance.
- * Cette classe peut être copiée dans codingame afin de valider les tests d'acception après avoir supprimé la première ligne de la classe
+ * Cette classe peut être copiée dans codinggame afin de valider les tests d'acceptance après avoir supprimé la première ligne de la classe
  * ("package skynet")
  * 
  **/
-public class Player {
+class Player {
 
 	protected static Logger logger=
 		    Logger.getLogger(Player.class.getName());
-	
-	Reseau reseau = new Reseau();
 	
 	/**
 	 * Fonction main
@@ -25,9 +23,10 @@ public class Player {
 	 */
 	public static void main(String args[]) {
 
+		Reseau reseau = new Reseau();
+		
 		// Entrée standard
 		Scanner in = new Scanner(System.in);
-
 		int N = in.nextInt(); // Le nombre de noeuds
 		int L = in.nextInt(); // Le nombre de liens
 		int E = in.nextInt(); // Le nombre de passerelles
@@ -42,14 +41,14 @@ public class Player {
 			int N1 = in.nextInt(); 
 			int N2 = in.nextInt();
 			
-			logger.info(String.format("Lien : %d %d", N1,N2));
+			reseau.ajouterLien(N1, N2);
 		}
 		for (int i = 0; i < E; i++) {
 			
 			//Récupération de la position des passerelles
 			int EI = in.nextInt();
-
-			logger.info(String.format("Passerelle : %d", EI));
+			
+			reseau.ajouterPasserelle(EI);
 		}
 
 		//Boucle infinie du jeu
@@ -59,6 +58,9 @@ public class Player {
 			int SI = in.nextInt(); 
 			
 			logger.info(String.format("Position de skynet : %d", SI));
+			
+			//Suppression du lien le plus adapté
+			reseau.supprimerLienOptimise(SI);
 		}
 	}
 	
@@ -91,7 +93,18 @@ public class Player {
 		 */
 		public void ajouterLien(int source,int cible)
 		{
-			//TODO
+			logger.info(String.format("Ajout du lien : %d %d", source,cible));
+			
+			Noeud noeudSource = creerOuRecupererNoeud(source);
+			Noeud noeudCible = creerOuRecupererNoeud(cible);
+			
+			//Création du lien entre le noeud source et le noeud cible
+			noeudSource.ajouterLien(noeudCible);
+			noeudCible.ajouterLien(noeudSource);
+			
+			// Ajout des noeuds à la map contenant l'ensemble des noeuds du réseau
+			mapNoeud.put(source,noeudSource);
+			mapNoeud.put(cible,noeudCible);
 		}
 		
 		/**
@@ -101,7 +114,17 @@ public class Player {
 		 */
 		public void supprimerLien(int source,int cible)
 		{
-			//TODO
+			logger.info(String.format("Suppression du lien %d %d", source, cible));
+			
+			Noeud noeudSource = mapNoeud.get(source);
+			Noeud noeudCible = mapNoeud.get(cible);
+			
+			//Supprime les liens entre le noeud source et le noeud cible
+			noeudSource.getLiens().remove(noeudCible);
+			noeudCible.getLiens().remove(noeudSource);
+			
+			// Coupure du lien
+			System.out.println(source + " " + cible);
 		}
 		
 		/**
@@ -110,7 +133,8 @@ public class Player {
 		 */
 		public void ajouterPasserelle(Integer position)
 		{
-			//TODO
+			logger.info(String.format("Ajout de la passerelle : %d", position));
+			mapNoeud.get(position).setPasserelle(true);
 		}
 		
 		/**
@@ -120,8 +144,7 @@ public class Player {
 		 */
 		public Noeud getNoeud(int position)
 		{
-			//TODO
-			return null;
+			return mapNoeud.get(position);
 		}
 		
 		/**
@@ -131,8 +154,22 @@ public class Player {
 		 */
 		public Noeud getLienAvecMinDependance(Noeud noeud)
 		{
-			//TODO
-			return null;
+			Noeud noeudAvecMinLien = null;
+			
+			if (noeud.getLiens() != null)
+			{
+				for (Noeud lien : noeud.getLiens())
+				{
+					// Si noeudAvecMinLien n'est pas initialisé ou si le lien courant à moins de dépendances que noeudAvecMinLien
+					if (noeudAvecMinLien == null || 
+							lien.getLiens().size() < noeudAvecMinLien.getLiens().size())
+					{
+						noeudAvecMinLien = lien;
+					}
+				}
+			}
+			
+			return noeudAvecMinLien;
 		}
 		
 		/**
@@ -142,10 +179,68 @@ public class Player {
 		 */
 		public Noeud getLienAvecMaxDependance(Noeud noeud)
 		{
-			//TODO
-			return null;
+			Noeud noeudAvecMaxLien = null;
+			
+			if (noeud.getLiens() != null)
+			{
+				for (Noeud lien : noeud.getLiens())
+				{
+					// Si noeudAvecMaxLien n'est pas initialisé ou si le lien courant à plus de dépendances que noeudAvecMaxLien
+					if (noeudAvecMaxLien == null || 
+							lien.getLiens().size() > noeudAvecMaxLien.getLiens().size())
+					{
+						noeudAvecMaxLien = lien;
+					}
+				}
+			}
+			
+			return noeudAvecMaxLien;
 		}
 		
+		/**
+		 * Permet de supprimer le lien le plus adapté afin de bloquer skynet
+		 * @param skynetPosition position de skynet
+		 */
+		public void supprimerLienOptimise(int skynetPosition)
+		{
+			//Récupération du noeud courant de skynet
+			Noeud skynet = getNoeud(skynetPosition);
+			
+			if (skynet.getLienPasserelle() != null)
+			{
+				int passerelle = skynet.getLienPasserelle().getPosition();
+				
+				logger.info(String.format("Suppression du lien vers la passerelle : %d", passerelle));
+				supprimerLien(skynet.getPosition(),skynet.getLienPasserelle().getPosition());
+			}
+			else
+			{
+				logger.info(String.format("Suppression d'un des liens de skynet ayant le plus de dépendances. "
+						+ "Position skynet : %d", skynetPosition));
+				supprimerLien(skynet.getPosition(),getLienAvecMaxDependance(skynet).getPosition());
+			}
+		}
+		
+		/**
+		 * Récupérer le noeud ou le créer s'il n'existe pas
+		 * @param position position du noeud
+		 * @return le noeud correspondant à la position
+		 */
+		private Noeud creerOuRecupererNoeud(int position)
+		{
+			Noeud noeud = null;
+			
+			if (!mapNoeud.containsKey(position))
+			{
+				logger.info(String.format("Le noeud %d n'existe pas. Création du noeud", position));
+				noeud = new Noeud(position);
+			}
+			else
+			{
+				noeud = mapNoeud.get(position);
+			}
+			return noeud;
+		}
 		
 	}
 	
@@ -187,7 +282,30 @@ public class Player {
 		 */
 		public void ajouterLien(Noeud noeud)
 		{
-			//TODO
+			//Ajout du lien s'il n'existe pas déja
+			if (!liens.contains(noeud))
+			{
+				liens.add(noeud);
+			}
+		}
+		
+		/**
+		 * Si le noeud à un lien qui est une passerelle, la méthode retourne cette passerelle
+		 * Sinon retourne null
+		 * @return le lien du noeud correspond à une passerelle, sinon null
+		 */
+		public Noeud getLienPasserelle()
+		{
+			Noeud passerelle = null;
+			
+			for (Noeud lien : liens)
+			{
+				if (lien.isPasserelle)
+				{
+					passerelle = lien;
+				}
+			}
+			return passerelle;
 		}
 		
 		/**

@@ -49,9 +49,9 @@ public class ReseauTest {
 		
 		Reseau reseau = creerReseauComplexiteTresSimple(source,cible);
 		
-		reseau.ajouterPasserelle(2);
+		reseau.ajouterPasserelle(cible);
 		
-		Assert.assertTrue(reseau.getNoeud(2).isPasserelle());
+		Assert.assertTrue(reseau.getNoeud(cible).isPasserelle());
 	}
 	
 	/**
@@ -66,15 +66,21 @@ public class ReseauTest {
 		Assert.assertEquals(4, reseau.getLienAvecMaxDependance(reseau.mapNoeud.get(3)).getPosition());
 	}
 	
+	/**
+	 * Permet de tester la récupération du noeud ayant le moins de dépendances
+	 */
 	@Test
 	public void getLienAvecMinDependanceTest()
 	{
 		Reseau reseau = creerReseauComplexiteMoyenne();
 		
 		// Le noeud 3 correspond au noeud central du réseau de complexité moyenne
-		Assert.assertEquals(2, reseau.getLienAvecMaxDependance(reseau.mapNoeud.get(3)).getPosition());
+		Assert.assertEquals(2, reseau.getLienAvecMinDependance(reseau.mapNoeud.get(3)).getPosition());
 	}
 	
+	/**
+	 * Permet de tester la récupération d'un noeud à partir de sa position
+	 */
 	@Test
 	public void getNoeudTest()
 	{
@@ -89,6 +95,9 @@ public class ReseauTest {
 		Assert.assertEquals(cible, reseau.getNoeud(cible).getPosition());
 	}
 	
+	/**
+	 * Permet de tester la suppression d'un lien
+	 */
 	@Test
 	public void supprimerLienTest()
 	{
@@ -101,19 +110,13 @@ public class ReseauTest {
 		Noeud noeudDeux = reseau.mapNoeud.get(2);
 		Noeud noeudTrois = reseau.mapNoeud.get(3);
 		Noeud noeudQuatre = reseau.mapNoeud.get(4);
-		Noeud noeudCinq = reseau.mapNoeud.get(5);
-		Noeud noeudSix = reseau.mapNoeud.get(6);
-		Noeud noeudSept = reseau.mapNoeud.get(7);
-		
 		
 		Assert.assertTrue(noeudDeux.getLiens().contains(noeudZero));
 		Assert.assertTrue(noeudDeux.getLiens().contains(noeudUn));
 		Assert.assertTrue(noeudDeux.getLiens().contains(noeudTrois));
 		
-		Assert.assertTrue(noeudQuatre.getLiens().contains(noeudTrois));
-		Assert.assertTrue(noeudQuatre.getLiens().contains(noeudCinq));
-		Assert.assertTrue(noeudQuatre.getLiens().contains(noeudSix));
-		Assert.assertTrue(noeudQuatre.getLiens().contains(noeudSept));
+		Assert.assertTrue(noeudTrois.getLiens().contains(noeudDeux));
+		Assert.assertTrue(noeudTrois.getLiens().contains(noeudQuatre));
 		
 		//Séparation du graphe en deux
 		reseau.supprimerLien(source, cible);
@@ -124,12 +127,54 @@ public class ReseauTest {
 		Assert.assertFalse(noeudDeux.getLiens().contains(noeudTrois));
 		
 		//Le noeud a été supprimé
-		Assert.assertFalse(noeudQuatre.getLiens().contains(noeudTrois));
-		Assert.assertTrue(noeudQuatre.getLiens().contains(noeudCinq));
-		Assert.assertTrue(noeudQuatre.getLiens().contains(noeudSix));
-		Assert.assertTrue(noeudQuatre.getLiens().contains(noeudSept));
+		Assert.assertFalse(noeudTrois.getLiens().contains(noeudDeux));
+		Assert.assertTrue(noeudTrois.getLiens().contains(noeudQuatre));
+	}
+	
+	/**
+	 * Permet de vérifier qu'on supprime les liens avec une passerelle en priorité
+	 * de skynet
+	 */
+	@Test
+	public void supprimerLienOptimiseSiPasserelle()
+	{
+		Reseau reseau = creerReseauComplexiteMoyenne();
 		
+		Noeud noeudDeux = reseau.getNoeud(2);
+		Noeud noeudTrois = reseau.getNoeud(3);
 		
+		//Le noeud 2 est une passerelle
+		noeudDeux.setPasserelle(true);
+		
+		//Le lien 3 a un lien avec le lien 2
+		Assert.assertTrue(noeudTrois.getLiens().contains(noeudDeux));
+		
+		//Skynet est sur le noeud 3
+		reseau.supprimerLienOptimise(3);
+		
+		//Le lien 3 n'a plus de lien avec le lien 2
+		Assert.assertFalse(noeudTrois.getLiens().contains(noeudDeux));
+	}
+	
+	/**
+	 * Permet de tester qu'on supprime de préférence le lien qui amène à plus de lien
+	 */
+	@Test
+	public void supprimerLienOptimiseSiPasDePasserelle()
+	{
+		Reseau reseau = creerReseauComplexiteMoyenne();
+		
+		Noeud noeudTrois = reseau.getNoeud(3);
+		Noeud noeudQuatre = reseau.getNoeud(4);
+		
+		//Le lien 3 a un lien avec le lien 4
+		Assert.assertTrue(noeudTrois.getLiens().contains(noeudQuatre));
+		
+		//Skynet est sur le noeud 3
+		reseau.supprimerLienOptimise(3);
+		
+		//Le lien 3 n'a plus de lien avec le lien 4
+		Assert.assertFalse(noeudTrois.getLiens().contains(noeudQuatre));
 	}
 	
 	/**
@@ -168,5 +213,7 @@ public class ReseauTest {
 		reseau.ajouterLien(4, 7);
 		return reseau;
 	}
+	
+	
 
 }
